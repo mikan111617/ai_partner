@@ -38,10 +38,19 @@ class PartnerRuntime:
         self.llm = OllamaLLM(cfg["ollama"])
         self.vnyan = VNyanBridge(cfg.get("vnyan", {}))
         self.voice_active = False
-        self.voice = VoiceOutput(cfg["voice"], self.vnyan, on_start=self._voice_start, on_end=self._voice_end)
+        self.voice = VoiceOutput(
+            cfg["voice"],
+            self.vnyan,
+            on_start=self._voice_start,
+            on_end=self._voice_end,
+        )
 
         self._game_events: queue.Queue[tuple[GamePack, dict[str, Any]]] = queue.Queue(maxsize=32)
-        self.games = GamePackManager(cfg.get("game_packs", {}), cfg.get("capture", {}), self._queue_game_event)
+        self.games = GamePackManager(
+            cfg.get("game_packs", {}),
+            cfg.get("capture", {}),
+            self._queue_game_event,
+        )
 
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ai-partner")
         self.task: _Task | None = None
@@ -95,13 +104,17 @@ class PartnerRuntime:
         text = str(text or "").strip()
         if not text:
             return
+
         mode, context_id = self._current_mode_context()
-        history = self.memory.conversation_context(context_id, int(self.cfg["memory"].get("recent_conversation_turns", 8)))
-        events = self.memory.event_context(context_id, int(self.cfg["memory"].get("recent_events", 12)))
-        if mode == "game" and self.games.current is not None:
-            scenario = self.games.scenario_context()
-            if scenario:
-                events = (events + "\n\n" + scenario).strip()
+        history = self.memory.conversation_context(
+            context_id,
+            int(self.cfg["memory"].get("recent_conversation_turns", 8)),
+        )
+        events = self.memory.event_context(
+            context_id,
+            int(self.cfg["memory"].get("recent_events", 12)),
+        )
+
         future = self.executor.submit(
             self.llm.respond,
             user_text=text,
@@ -122,18 +135,28 @@ class PartnerRuntime:
 
         self.pending_user.append(turn)
         if self.task.kind == "conversation":
-            print("[conversation] continuing speech queued; current reply will be regenerated with all chunks")
+            print(
+                "[conversation] continuing speech queued; "
+                "current reply will be regenerated with all chunks"
+            )
             return
 
-        # Scenario/idle comments are optional; direct speech always wins.
+        # Game/idle comments are optional; direct speech always wins.
         if self.task.future.cancel():
             self.task = None
-            merged = "。".join(x.text.strip("。 ") for x in self.pending_user if x.text.strip())
+            merged = "。".join(
+                item.text.strip("。 ")
+                for item in self.pending_user
+                if item.text.strip()
+            )
             self.pending_user.clear()
             self._submit_user(merged)
         else:
             self.drop_current_task = True
-            print("[conversation] current background reaction will be discarded; user speech has priority")
+            print(
+                "[conversation] current background reaction will be discarded; "
+                "user speech has priority"
+            )
 
     def _process_user_result(self, task: _Task, data: dict[str, Any]) -> None:
         event = {
@@ -144,26 +167,48 @@ class PartnerRuntime:
             "signals": dict(data.get("signals") or {}),
         }
         delta = self.mind.appraise(event)
-        if any(abs(v) >= 0.005 for v in delta.values()):
-            shown = ", ".join(f"{k}={v:+.3f}" for k, v in delta.items() if abs(v) >= 0.005)
+        if any(abs(value) >= 0.005 for value in delta.values()):
+            shown = ", ".join(
+                f"{key}={value:+.3f}"
+                for key, value in delta.items()
+                if abs(value) >= 0.005
+            )
             print(f"[mind] {shown}")
+
         utterance = str(data.get("utterance") or "").strip()
         self.memory.add_conversation(task.context_id, task.user_text, utterance)
         if utterance:
-            presentation = self.mind.presentation(str(data.get("local_emotion") or "neutral"), float(data.get("local_intensity", 0.35) or 0.35))
-            self.voice.speak(utterance, presentation["emotion"], presentation["intensity"], presentation["delivery_energy"])
+            presentation = self.mind.presentation(
+                str(data.get("local_emotion") or "neutral"),
+                float(data.get("local_intensity", 0.35) or 0.35),
+            )
+            self.voice.speak(
+                utterance,
+                presentation["emotion"],
+                presentation["intensity"],
+                presentation["delivery_energy"],
+            )
 
     def _process_game_result(self, data: dict[str, Any]) -> None:
         utterance = str(data.get("utterance") or "").strip()
         if not utterance:
             return
-        presentation = self.mind.presentation(str(data.get("local_emotion") or "neutral"), float(data.get("local_intensity", 0.35) or 0.35))
-        self.voice.speak(utterance, presentation["emotion"], presentation["intensity"], presentation["delivery_energy"])
+        presentation = self.mind.presentation(
+            str(data.get("local_emotion") or "neutral"),
+            float(data.get("local_intensity", 0.35) or 0.35),
+        )
+        self.voice.speak(
+            utterance,
+            presentation["emotion"],
+            presentation["intensity"],
+            presentation["delivery_energy"],
+        )
 
     def _poll_task(self) -> None:
         task = self.task
         if task is None or not task.future.done():
             return
+
         self.task = None
         try:
             data = task.future.result()
@@ -177,7 +222,11 @@ class PartnerRuntime:
             chunks = [task.user_text] if task.kind == "conversation" else []
             chunks.extend(turn.text for turn in self.pending_user)
             self.pending_user.clear()
-            merged = "。".join(str(x).strip("。 ") for x in chunks if str(x).strip())
+            merged = "。".join(
+                str(value).strip("。 ")
+                for value in chunks
+                if str(value).strip()
+            )
             print(f"[conversation] joined continuing speech: {merged}")
             self._submit_user(merged)
             return
@@ -185,6 +234,7 @@ class PartnerRuntime:
         if self.drop_current_task:
             self.drop_current_task = False
             return
+
         if task.kind == "conversation":
             self._process_user_result(task, data if isinstance(data, dict) else {})
         elif task.kind in {"game", "ambient"}:
@@ -196,44 +246,91 @@ class PartnerRuntime:
                 pack, event = self._game_events.get_nowait()
             except queue.Empty:
                 break
+
             context_id = f"game:{pack.id}"
-            self.memory.add_event(context_id, str(event.get("event_type") or "game"), event)
+            self.memory.add_event(
+                context_id,
+                str(event.get("event_type") or "game"),
+                event,
+            )
             delta = self.mind.appraise(event)
             actor = str(event.get("actor_scope") or "unknown")
-            if actor == "user" and any(abs(v) >= 0.005 for v in delta.values()):
-                shown = ", ".join(f"{k}={v:+.3f}" for k, v in delta.items() if abs(v) >= 0.005)
+            if actor == "user" and any(
+                abs(value) >= 0.005 for value in delta.values()
+            ):
+                shown = ", ".join(
+                    f"{key}={value:+.3f}"
+                    for key, value in delta.items()
+                    if abs(value) >= 0.005
+                )
                 print(f"[mind/game] {shown}")
+
             self.pending_game = (pack, event)
             self.last_activity = time.time()
 
     def _maybe_game_reaction(self, now: float) -> None:
-        if self.pending_game is None or self.task is not None or self.voice_active or self.pending_user:
+        if (
+            self.pending_game is None
+            or self.task is not None
+            or self.voice_active
+            or self.pending_user
+        ):
             return
         if now - self.last_game_reaction < 4.5:
             return
+
         pack, event = self.pending_game
         self.pending_game = None
         self.last_game_reaction = now
-        context = pack.corpus.context()
-        future = self.executor.submit(self.llm.game_reaction, event=event, context=context, mind=dict(self.mind.state))
-        self.task = _Task("game", future, context_id=f"game:{pack.id}", mode="game")
+        context = self.games.present_context()
+        future = self.executor.submit(
+            self.llm.game_reaction,
+            event=event,
+            context=context,
+            mind=dict(self.mind.state),
+        )
+        self.task = _Task(
+            "game",
+            future,
+            context_id=f"game:{pack.id}",
+            mode="game",
+        )
 
     def _maybe_ambient(self, now: float) -> None:
-        icfg = self.cfg.get("initiative", {})
-        if not bool(icfg.get("enabled", True)) or self.task is not None or self.voice_active or self.pending_user or self.pending_game:
+        initiative = self.cfg.get("initiative", {})
+        if (
+            not bool(initiative.get("enabled", True))
+            or self.task is not None
+            or self.voice_active
+            or self.pending_user
+            or self.pending_game
+        ):
             return
-        if now - self.last_idle_check < float(icfg.get("idle_check_seconds", 3.0)):
+        if now - self.last_idle_check < float(
+            initiative.get("idle_check_seconds", 3.0)
+        ):
             return
+
         self.last_idle_check = now
-        if now - max(self.last_activity, self.mind.last_spoken) < float(icfg.get("min_speech_gap_seconds", 12.0)):
+        if now - max(self.last_activity, self.mind.last_spoken) < float(
+            initiative.get("min_speech_gap_seconds", 12.0)
+        ):
             return
-        reason = self.mind.initiative_reason(icfg)
+
+        reason = self.mind.initiative_reason(initiative)
         if not reason:
             return
+
         # Deliberately no conversation history here. Silence must not resurrect an old topic.
         present = self.games.present_context()
-        future = self.executor.submit(self.llm.ambient, reason=reason, present_context=present, mind=dict(self.mind.state))
-        self.task = _Task("ambient", future, context_id=self._current_mode_context()[1], mode=self._current_mode_context()[0])
+        future = self.executor.submit(
+            self.llm.ambient,
+            reason=reason,
+            present_context=present,
+            mind=dict(self.mind.state),
+        )
+        mode, context_id = self._current_mode_context()
+        self.task = _Task("ambient", future, context_id=context_id, mode=mode)
         self.last_activity = now
 
     def run(self) -> None:
@@ -255,9 +352,12 @@ class PartnerRuntime:
                 self._maybe_game_reaction(now)
                 self._maybe_ambient(now)
 
-                if now - self.last_save >= float(self.cfg.get("mind", {}).get("save_interval_seconds", 2.0)):
+                if now - self.last_save >= float(
+                    self.cfg.get("mind", {}).get("save_interval_seconds", 2.0)
+                ):
                     self.last_save = now
                     self.mind.save()
+
                 time.sleep(0.04)
         except KeyboardInterrupt:
             print("\n[runtime] stopping")
