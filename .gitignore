@@ -1,0 +1,29 @@
+# Python
+.venv/
+.venv-*/
+venv/
+__pycache__/
+*.py[cod]
+
+# Runtime/private data
+data/
+config.user.yaml
+local_games/
+voice/
+*.sqlite3
+*.jsonl
+mind*.json
+
+# Irodori generated cache
+.irodori_companion_ref_cache/
+.irodori_ref_cache/
+
+# Build/editor
+build/
+dist/
+.vscode/
+.idea/
+
+# Never publish extracted game data
+Extella_SCRIPTS/
+**/extella_scripts/

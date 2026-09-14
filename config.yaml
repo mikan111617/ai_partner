@@ -1,0 +1,93 @@
+# Shareable defaults. Put machine-specific paths in config.user.yaml.
+mode: auto
+
+ollama:
+  url: http://127.0.0.1:11434
+  conversation_model: ai-partner-ojousama:9b
+  game_model: ai-partner-ojousama:4b
+  cognition_model: qwen3.5:4b
+  timeout_seconds: 180
+  keep_alive: 10m
+  normal_num_ctx: 8192
+  normal_num_gpu: 22
+  game_num_ctx: 4096
+  game_num_gpu: 0
+
+microphone:
+  enabled: true
+  device: ""
+  sample_rate: 16000
+  model: large-v3-turbo
+  device_type: cuda
+  compute_type: int8_float16
+  rms_threshold: 0.015
+  silence_seconds: 0.75
+  min_speech_seconds: 0.35
+  max_speech_seconds: 15.0
+  continuation_merge_seconds: 6.0
+  beam_size: 3
+
+voice:
+  # console works without a TTS install. Change to irodori in config.user.yaml.
+  provider: console
+  irodori_dir: ""
+  irodori_launcher: auto
+  irodori_python: ""
+  irodori_uv_environment: .venv-companion
+  irodori_checkpoint: Aratako/Irodori-TTS-v4-Small
+  irodori_codec_repo: Aratako/Semantic-DACVAE-Japanese-32dim
+  irodori_reference_audio: ""
+  irodori_preload: true
+  irodori_num_steps: 6
+  irodori_t_schedule_mode: sway
+  irodori_sway_coeff: -1.0
+  irodori_device: ""
+  irodori_codec_device: ""
+  irodori_model_precision: bf16
+  irodori_codec_precision: bf16
+  irodori_ref_latent_cache: true
+  irodori_ref_cache_dir: .irodori_companion_ref_cache
+  irodori_restart_on_crash: true
+
+vnyan:
+  enabled: false
+  websocket_url: ws://127.0.0.1:8000/vnyan
+  reset_after_speech: true
+  events:
+    neutral: ai_neutral
+    happy: ai_happy
+    surprise: ai_surprise
+    angry: ai_angry
+    sad: ai_sad
+    worry: ai_worry
+    thinking: ai_thinking
+    excited: ai_happy
+
+memory:
+  recent_conversation_turns: 8
+  recent_events: 12
+
+initiative:
+  enabled: true
+  idle_check_seconds: 3.0
+  min_speech_gap_seconds: 12.0
+  boredom_threshold: 0.82
+  emotion_threshold: 0.90
+  # Idle speech never receives old conversation history.
+
+mind:
+  decay_per_second: 0.0015
+  save_interval_seconds: 2.0
+
+game_packs:
+  enabled: true
+  directory: local_games
+  active: []
+
+capture:
+  monitor: 1
+  width: 960
+  height: 540
+
+modes:
+  game_window_patterns: []
