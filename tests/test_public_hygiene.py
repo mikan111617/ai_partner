@@ -13,17 +13,31 @@ class PublicRepositoryHygieneTests(unittest.TestCase):
             "Takuya",
             "Fate/EXTELLA",
             "fate_extella",
+            "Extella_SCRIPTS",
+            "extella_scripts",
             "レイラ",
             "wizard_boy",
             "魔法使いの少年",
             "user_name",
+            "ScenarioCorpus",
+            "scenario_cfg",
+            '"scenario_key"',
+            "csv_text_column",
+            "local_scenarios",
         )
         suffixes = {".py", ".md", ".yaml", ".yml", ".json", ".txt", ".cmd"}
         failures: list[str] = []
         for path in root.rglob("*"):
-            if not path.is_file() or path.resolve() == this_file or path.suffix.lower() not in suffixes:
+            if (
+                not path.is_file()
+                or path.resolve() == this_file
+                or path.suffix.lower() not in suffixes
+            ):
                 continue
-            if any(part in {".git", ".venv", "venv", "local_games", "data"} for part in path.parts):
+            if any(
+                part in {".git", ".venv", "venv", "local_games", "data"}
+                for part in path.parts
+            ):
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore")
             for term in banned:
