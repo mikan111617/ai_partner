@@ -106,10 +106,10 @@ Return JSON only:
 
 ゲーム中に今起きた出来事:
 {json.dumps(event, ensure_ascii=False)}
-到達済みコンテキスト:
+現在のゲーム状況:
 {context}
 
-未来のシナリオを推測・予告しないでください。今の瞬間への短い反応だけを返してください。
+まだ起きていない展開を推測・予告しないでください。今の瞬間への短い反応だけを返してください。
 arousal は発話の勢いにだけ影響し、感情強度を自動増幅しません。
 Return JSON only:
 {{"utterance":"短い一言または空文字", "local_emotion":"neutral|happy|surprise|angry|worry|sad|thinking|excited", "local_intensity":0.0}}
