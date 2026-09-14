@@ -7,6 +7,7 @@ from pathlib import Path
 class PublicRepositoryHygieneTests(unittest.TestCase):
     def test_private_names_and_title_specific_terms_are_absent(self) -> None:
         root = Path(__file__).resolve().parents[1]
+        this_file = Path(__file__).resolve()
         banned = (
             "タクヤ",
             "Takuya",
@@ -20,7 +21,7 @@ class PublicRepositoryHygieneTests(unittest.TestCase):
         suffixes = {".py", ".md", ".yaml", ".yml", ".json", ".txt", ".cmd"}
         failures: list[str] = []
         for path in root.rglob("*"):
-            if not path.is_file() or path.suffix.lower() not in suffixes:
+            if not path.is_file() or path.resolve() == this_file or path.suffix.lower() not in suffixes:
                 continue
             if any(part in {".git", ".venv", "venv", "local_games", "data"} for part in path.parts):
                 continue
