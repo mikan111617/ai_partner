@@ -24,6 +24,6 @@ dist/
 .vscode/
 .idea/
 
-# Never publish extracted game data
-Extella_SCRIPTS/
-**/extella_scripts/
+# Never publish locally extracted game/script data
+extracted_game_data/
+local_scenarios/
