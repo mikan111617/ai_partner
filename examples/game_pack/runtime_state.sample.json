@@ -1,18 +1,16 @@
 {
-  "event_id": "scene_003_enter",
-  "scenario_key": "scene_003",
-  "speaker": "Narrator",
-  "text": "あなたは扉を開けた。",
-  "player_event": {
-    "event_id": "choice_open_door_1",
-    "event_type": "choice",
-    "actor_scope": "user",
-    "summary": "危険を承知で扉を開けた",
-    "importance": 0.8,
-    "signals": {
-      "boldness": 0.9,
-      "adventure": 0.8,
-      "active_behavior": 0.7
+  "events": [
+    {
+      "event_id": "choice_open_door_1",
+      "event_type": "choice",
+      "actor_scope": "user",
+      "summary": "危険を承知で扉を開けた",
+      "importance": 0.8,
+      "signals": {
+        "boldness": 0.9,
+        "adventure": 0.8,
+        "active_behavior": 0.7
+      }
     }
-  }
+  ]
 }
