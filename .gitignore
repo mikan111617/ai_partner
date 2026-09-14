@@ -23,7 +23,3 @@ build/
 dist/
 .vscode/
 .idea/
-
-# Never publish locally extracted game/script data
-extracted_game_data/
-local_scenarios/
