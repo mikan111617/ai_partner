@@ -11,27 +11,15 @@ match:
     - '\\My Game\\'
   window_patterns: []
 
-# For your own game, state_file is the most accurate method.
-# For an existing game with a local scenario dump, change to screen_ocr.
+# For your own or explicitly authorized game integration, state_file is the most accurate method.
+# For a lawfully used existing game, screen_ocr can detect configured text events from the current screen.
 tracking:
   method: state_file
   state_file: runtime_state.json
   interval_seconds: 0.9
-  match_threshold: 0.64
 
-scenario:
-  enabled: true
-  directory: scenario
-  files:
-    - '**/*.csv'
-  # -1 means the last CSV column.
-  csv_text_column: -1
-  csv_speaker_column: 0
-  csv_id_column: 1
-  min_text_chars: 4
-
-# Optional screen-text rules. These work especially well with tracking.method=screen_ocr.
-# A matched rule describes a PLAYER event, so it can change respect/trust/etc.
+# Optional rules used when tracking.method is screen_ocr.
+# Rules react only to text currently visible on screen; no scenario file is loaded.
 gameplay_rules:
   - pattern: 'GAME OVER|敗北|戦闘不能'
     event_type: defeat
