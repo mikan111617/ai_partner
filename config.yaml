@@ -3,8 +3,8 @@ mode: auto
 
 ollama:
   url: http://127.0.0.1:11434
-  conversation_model: ai-partner-ojousama:9b
-  game_model: ai-partner-ojousama:4b
+  conversation_model: qwen3.5:9b
+  game_model: qwen3.5:4b
   cognition_model: qwen3.5:4b
   timeout_seconds: 180
   keep_alive: 10m
@@ -76,7 +76,6 @@ initiative:
   # Idle speech never receives old conversation history.
 
 mind:
-  decay_per_second: 0.0015
   save_interval_seconds: 2.0
 
 game_packs:
