@@ -1,4 +1,4 @@
-# Shareable defaults. Put machine-specific paths in config.user.yaml.
+# Shared defaults. Put machine-specific overrides in config.user.yaml.
 mode: auto
 
 ollama:
@@ -28,9 +28,8 @@ microphone:
   beam_size: 3
 
 voice:
-  # console works without a TTS install. Change to irodori in config.user.yaml.
-  provider: console
-  irodori_dir: ""
+  provider: irodori
+  irodori_dir: 'D:\Irodori-TTS'
   irodori_launcher: auto
   irodori_python: ""
   irodori_uv_environment: .venv-companion
@@ -73,7 +72,6 @@ initiative:
   min_speech_gap_seconds: 12.0
   boredom_threshold: 0.82
   emotion_threshold: 0.90
-  # Idle speech never receives old conversation history.
 
 mind:
   save_interval_seconds: 2.0
