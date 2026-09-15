@@ -35,8 +35,8 @@ DEFAULTS: dict[str, Any] = {
         "beam_size": 3,
     },
     "voice": {
-        "provider": "console",
-        "irodori_dir": "",
+        "provider": "irodori",
+        "irodori_dir": r"D:\Irodori-TTS",
         "irodori_reference_audio": "",
     },
     "vnyan": {
@@ -84,6 +84,18 @@ def load_config(path: str | Path = "config.yaml") -> dict[str, Any]:
     if local.exists():
         cfg = _merge(cfg, _load(local))
         print(f"[config] local overrides={local}")
+
     if str(cfg.get("mode", "auto")) not in {"auto", "normal", "game"}:
         raise ValueError("mode must be auto, normal, or game")
+
+    voice = cfg.get("voice") or {}
+    if str(voice.get("provider", "irodori")).lower() != "irodori":
+        raise ValueError("AI Partner public edition requires Irodori-TTS")
+
+    irodori_dir = str(voice.get("irodori_dir", "") or "").strip()
+    if not irodori_dir:
+        raise ValueError(
+            "voice.irodori_dir is required. Set the Irodori-TTS path in config.user.yaml"
+        )
+
     return cfg
