@@ -11,15 +11,15 @@ match:
     - '\\My Game\\'
   window_patterns: []
 
-# For your own or explicitly authorized game integration, state_file is the most accurate method.
-# For a lawfully used existing game, screen_ocr can detect configured text events from the current screen.
+# Choose how game events are detected.
+# state_file: the game writes runtime_state.json.
+# screen_ocr: detect configured text currently displayed on screen.
 tracking:
   method: state_file
   state_file: runtime_state.json
   interval_seconds: 0.9
 
-# Optional rules used when tracking.method is screen_ocr.
-# Rules react only to text currently visible on screen; no scenario file is loaded.
+# Optional text-event rules used with tracking.method: screen_ocr.
 gameplay_rules:
   - pattern: 'GAME OVER|敗北|戦闘不能'
     event_type: defeat
