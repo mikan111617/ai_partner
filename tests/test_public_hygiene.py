@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 class PublicRepositoryHygieneTests(unittest.TestCase):
-    def test_private_names_and_title_specific_terms_are_absent(self) -> None:
+    def test_private_names_and_legacy_public_terms_are_absent(self) -> None:
         root = Path(__file__).resolve().parents[1]
         this_file = Path(__file__).resolve()
         banned = (
@@ -24,6 +24,13 @@ class PublicRepositoryHygieneTests(unittest.TestCase):
             '"scenario_key"',
             "csv_text_column",
             "local_scenarios",
+            "シナリオファイル",
+            "抽出データ",
+            "不正入手",
+            "アクセス制限",
+            "lawfully used",
+            "provider: console",
+            "console works without",
         )
         suffixes = {".py", ".md", ".yaml", ".yml", ".json", ".txt", ".cmd"}
         failures: list[str] = []
