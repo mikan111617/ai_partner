@@ -23,8 +23,9 @@ if errorlevel 1 goto :error
 where ollama >nul 2>nul
 if errorlevel 1 (
   echo.
-  echo [WARNING] Ollama was not found. Install Ollama before running AI Partner.
-  goto :done
+  echo [ERROR] Ollama was not found. Install Ollama before running AI Partner.
+  pause
+  exit /b 1
 )
 
 echo.
@@ -34,10 +35,19 @@ if errorlevel 1 ollama pull qwen3.5:9b
 ollama show qwen3.5:4b >nul 2>nul
 if errorlevel 1 ollama pull qwen3.5:4b
 
-:done
+if not exist "config.user.yaml" (
+  copy /Y "config.user.example.yaml" "config.user.yaml" >nul
+  echo.
+  echo Created config.user.yaml.
+)
+
 echo.
 echo Setup complete.
-echo For Irodori-TTS, copy config.user.example.yaml to config.user.yaml and set your local paths.
+echo.
+echo Irodori-TTS is required.
+echo Default location: D:\Irodori-TTS
+echo If your Irodori-TTS is installed elsewhere, edit voice.irodori_dir in config.user.yaml.
+echo Then run run.cmd.
 pause
 exit /b 0
 
