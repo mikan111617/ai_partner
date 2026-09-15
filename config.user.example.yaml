@@ -1,14 +1,16 @@
-# Copy this file to config.user.yaml. The copied file is ignored by Git.
+# Copy this file to config.user.yaml when your local paths differ from config.yaml.
+# config.user.yaml is ignored by Git.
 
 microphone:
-  # Leave blank to use the default input device, or set a device name fragment.
+  # Leave blank to use the default input device.
   device: ""
 
 voice:
-  provider: irodori
-  irodori_dir: 'D:\\Irodori-TTS'
-  # Reference WAV is optional but recommended for voice cloning.
-  irodori_reference_audio: 'D:\\voices\\ojousama.wav'
+  # Change this when Irodori-TTS is installed somewhere other than D:\Irodori-TTS.
+  irodori_dir: 'D:\Irodori-TTS'
+  # Optional reference WAV for the character voice.
+  irodori_reference_audio: ''
 
 vnyan:
-  enabled: true
+  # VNyan is optional. Set true when using the VNyan integration.
+  enabled: false
