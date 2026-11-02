@@ -10,6 +10,7 @@ import yaml
 DEFAULTS: dict[str, Any] = {
     "mode": "auto",
     "ollama": {
+        "enabled": True,
         "url": "http://127.0.0.1:11434",
         "conversation_model": "qwen3.5:9b",
         "game_model": "qwen3.5:4b",
@@ -38,6 +39,10 @@ DEFAULTS: dict[str, Any] = {
         "provider": "irodori",
         "irodori_dir": r"D:\Irodori-TTS",
         "irodori_reference_audio": "",
+        "voicevox_url": "http://127.0.0.1:50021",
+        "voicevox_speaker": "四国めたん",
+        "voicevox_speed": 1.08,
+        "voicevox_volume": 1.0,
     },
     "vnyan": {
         "enabled": False,
@@ -52,6 +57,12 @@ DEFAULTS: dict[str, Any] = {
         "emotion_threshold": 0.90,
     },
     "mind": {"save_interval_seconds": 2.0},
+    "game_reaction": {
+        "mode": "llm",
+        "llm_timeout_seconds": 8.0,
+        "min_gap_seconds": 4.5,
+        "max_delay_seconds": 0.0,
+    },
     "game_packs": {"enabled": True, "directory": "local_games", "active": []},
     "capture": {"monitor": 1, "width": 960, "height": 540},
     "modes": {"game_window_patterns": []},
@@ -89,13 +100,15 @@ def load_config(path: str | Path = "config.yaml") -> dict[str, Any]:
         raise ValueError("mode must be auto, normal, or game")
 
     voice = cfg.get("voice") or {}
-    if str(voice.get("provider", "irodori")).lower() != "irodori":
-        raise ValueError("AI Partner public edition requires Irodori-TTS")
+    provider = str(voice.get("provider", "irodori")).lower()
+    if provider not in {"irodori", "voicevox"}:
+        raise ValueError("voice.provider must be irodori or voicevox")
 
-    irodori_dir = str(voice.get("irodori_dir", "") or "").strip()
-    if not irodori_dir:
-        raise ValueError(
-            "voice.irodori_dir is required. Set the Irodori-TTS path in config.user.yaml"
-        )
+    if provider == "irodori":
+        irodori_dir = str(voice.get("irodori_dir", "") or "").strip()
+        if not irodori_dir:
+            raise ValueError(
+                "voice.irodori_dir is required. Set the Irodori-TTS path in config.user.yaml"
+            )
 
     return cfg

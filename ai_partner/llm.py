@@ -32,8 +32,19 @@ class OllamaLLM:
         self.base_url = str(cfg.get("url", "http://127.0.0.1:11434")).rstrip("/")
         self.timeout = float(cfg.get("timeout_seconds", 180))
         self.keep_alive = str(cfg.get("keep_alive", "10m"))
+        self.enabled = bool(cfg.get("enabled", True))
 
-    def _chat(self, messages: list[dict[str, str]], *, model: str, temperature: float, num_ctx: int, num_gpu: int) -> dict[str, Any]:
+    def reachable(self) -> bool:
+        """True when Ollama answers. Used to fall back to prepared lines on light laptops."""
+        if not self.enabled:
+            return False
+        try:
+            requests.get(f"{self.base_url}/api/tags", timeout=3).raise_for_status()
+            return True
+        except Exception:
+            return False
+
+    def _chat(self, messages: list[dict[str, str]], *, model: str, temperature: float, num_ctx: int, num_gpu: int, timeout: float | None = None) -> dict[str, Any]:
         response = requests.post(
             f"{self.base_url}/api/chat",
             json={
@@ -45,7 +56,7 @@ class OllamaLLM:
                 "keep_alive": self.keep_alive,
                 "options": {"temperature": temperature, "num_ctx": int(num_ctx), "num_gpu": int(num_gpu)},
             },
-            timeout=self.timeout,
+            timeout=self.timeout if timeout is None else timeout,
         )
         response.raise_for_status()
         content = str((response.json().get("message") or {}).get("content", ""))
@@ -99,11 +110,12 @@ Return JSON only:
         data.setdefault("importance", 0.5)
         return data
 
-    def game_reaction(self, *, event: dict[str, Any], context: str, mind: dict[str, float]) -> dict[str, Any]:
+    def game_reaction(self, *, event: dict[str, Any], context: str, mind: dict[str, float], style: str = "", timeout: float | None = None) -> dict[str, Any]:
+        style_text = f"\n今回の役割: {style}\n" if style else ""
         prompt = f"""/no_think
 {persona_prompt()}
 現在の心理状態: {self._mind_text(mind)}
-
+{style_text}
 ゲーム中に今起きた出来事:
 {json.dumps(event, ensure_ascii=False)}
 現在のゲーム状況:
@@ -115,7 +127,7 @@ Return JSON only:
 {{"utterance":"短い一言または空文字", "local_emotion":"neutral|happy|surprise|angry|worry|sad|thinking|excited", "local_intensity":0.0}}
 """
         model = str(self.cfg.get("game_model") or self.cfg.get("conversation_model"))
-        data = self._chat([{"role":"user","content":prompt}], model=model, temperature=0.55, num_ctx=int(self.cfg.get("game_num_ctx",4096)), num_gpu=int(self.cfg.get("game_num_gpu",0)))
+        data = self._chat([{"role":"user","content":prompt}], model=model, temperature=0.55, num_ctx=int(self.cfg.get("game_num_ctx",4096)), num_gpu=int(self.cfg.get("game_num_gpu",0)), timeout=timeout)
         data.setdefault("utterance", "")
         data.setdefault("local_emotion", "neutral")
         data.setdefault("local_intensity", 0.35)

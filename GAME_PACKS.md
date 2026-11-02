@@ -78,6 +78,25 @@ gameplay_rules:
 
 長期的な `trust` / `affection` / `respect` / `antipathy` は、プレイヤー自身の行動として扱われたイベントから変化します。
 
+## ゲームから HTTP で出来事を送る
+
+ブラウザやティラノスクリプト（Electron）のゲームのようにファイルを書けない場合は、`tracking.method: http` を指定します。
+AI Partner が `http://127.0.0.1:<port>/event` で待ち受け、ゲームが送った出来事にその場で反応します。
+
+```yaml
+tracking:
+  method: http
+  port: 8765
+```
+
+送る内容の例:
+
+```json
+{"game": "invader", "event": {"event_type": "hit", "summary": "被弾した", "importance": 0.6, "details": {"lives": 2}}}
+```
+
+`lines` に出来事ごとのセリフを書いておくと、LLM を使わない・使えないときはそこから選んで話します。例は `event_games/invader/game.yaml` を参照してください。
+
 ## game.yaml の例
 
 `examples/game_pack/game.yaml` を `local_games/my_game/game.yaml` にコピーして使えます。

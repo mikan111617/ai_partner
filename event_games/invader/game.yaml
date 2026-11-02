@@ -1,0 +1,118 @@
+# 巨大インベーダー（ティラノスクリプト版）用のゲームパック。
+# ゲームが http://127.0.0.1:8765/event に出来事を送ってくる。
+enabled: true
+id: invader
+name: 巨大インベーダー
+
+tracking:
+  method: http
+  port: 8765
+  # 最後に出来事が届いてから、この秒数のあいだは「遊んでいる」とみなす
+  hold_seconds: 600
+
+match:
+  process_names: []
+  window_patterns: []
+
+# LLM で反応を作るときに伝える役割
+reaction_style: >-
+  あなたは喫茶店の古いゲーム筐体「巨大インベーダー」を遊んでいる来場者の隣で、画面を見ながらツッコミを入れる役です。
+  20〜30文字くらいの一言で、軽く、楽しく。相手をけなしすぎない。ゲームの外の話はしない。
+
+# 用意したセリフ。Ollama が無いとき・遅いときはここから選ぶ。
+# {stage} {lives} {score} {goal} などは、ゲームから届いた値に置き換わる。
+# emotion は声の調子（neutral / happy / excited / surprise / angry / worry / sad / thinking）。
+lines:
+  game_start:
+    emotion: excited
+    intensity: 0.5
+    texts:
+      - さあ、お手並み拝見ですわ。
+      - わたくしが見ていて差し上げますわ。存分にどうぞ。
+      - 退屈させたら承知しませんわよ？
+  stage_start:
+    emotion: excited
+    intensity: 0.45
+    texts:
+      - ステージ{stage}ですわね。{goal}、ですって。
+      - 次はステージ{stage}。気を抜かないことですわ。
+      - ステージ{stage}…さて、どう攻めますの？
+  hit:
+    emotion: surprise
+    intensity: 0.6
+    texts:
+      - ちょっと！ 今のは避けられましたわよね？
+      - あら、当たりましたわ。残り{lives}機ですわよ。
+      - 油断しすぎですわ！
+      - 痛そうですわね…わたくしは平気ですけれど。
+      - 弾をよく見なさいな！
+  game_over:
+    emotion: sad
+    intensity: 0.45
+    texts:
+      - あらあら…もうおしまいですの？
+      - 今回は、相手が悪かったということにしておきますわ。
+      - 次はもう少し粘ってくださいまし。
+      - ステージ{stage}で力尽きましたわね。惜しかったですわ。
+  stage_clear:
+    emotion: happy
+    intensity: 0.6
+    texts:
+      - やりますわね！ 少しだけ見直しましたわ。
+      - ステージ{stage}突破ですわ！ この調子ですのよ。
+      - まあ、わたくしの応援のおかげですわね。
+  peace_start:
+    emotion: surprise
+    intensity: 0.55
+    texts:
+      - え？ インベーダーが話しかけてきましたわ！
+      - 撃たずに待っていたら…こんなことになりますの？
+      - まさか、仲良くなるおつもりですの？
+  peace_clear:
+    emotion: happy
+    intensity: 0.65
+    texts:
+      - 戦わずに勝つなんて、粋なことをなさいますのね。
+      - 平和に解決ですって？ ちょっと感動しましたわ。
+      - 撃たない勇気…悪くありませんわ。
+  ending:
+    emotion: excited
+    intensity: 0.7
+    texts:
+      - 最後まで遊びきりましたのね！ お見事ですわ！
+      - エンディングですわ…わたくし、ちゃんと見届けましたわよ。
+  ending_peace:
+    emotion: happy
+    intensity: 0.75
+    texts:
+      - 一度も倒さずに最後まで…あなた、本物ですわね。
+      - 全部平和に終わらせるなんて。わたくし、感服いたしましたわ。
+  extend:
+    emotion: happy
+    intensity: 0.45
+    texts:
+      - 1機増えましたわ。大事に使いなさい。
+      - あら、残機が増えましたわね。運がいいこと。
+  giant:
+    emotion: surprise
+    intensity: 0.5
+    texts:
+      - 大きくなりましたわ！ …当たりやすくもなりましたけれど。
+      - 自機まで巨大化ですの？ 大胆ですわね！
+  barrier:
+    emotion: thinking
+    intensity: 0.35
+    texts:
+      - バリアに助けられましたわね。次はありませんわよ。
+  secret_command:
+    emotion: surprise
+    intensity: 0.65
+    texts:
+      - その色…隠しコマンドをご存じですの？
+      - まあ！ 機体の色が変わりましたわ。通ですわね。
+  retry:
+    emotion: excited
+    intensity: 0.4
+    texts:
+      - もう一度ですわね。今度こそ見せてくださいまし。
+      - 諦めないところは評価して差し上げますわ。

@@ -7,6 +7,7 @@ __pycache__/
 
 # Runtime/private data
 data/
+data_event/
 config.user.yaml
 local_games/
 voice/

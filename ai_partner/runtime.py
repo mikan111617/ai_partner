@@ -52,6 +52,22 @@ class PartnerRuntime:
             self._queue_game_event,
         )
 
+        # How game reactions are made:
+        #   llm   : always ask the LLM (original behaviour)
+        #   auto  : ask the LLM when Ollama answers; if it is missing or too slow, use the game pack's prepared lines
+        #   lines : always use the prepared lines (fast and predictable, e.g. at an event on a laptop)
+        reaction = dict(cfg.get("game_reaction") or {})
+        self.reaction_mode = str(reaction.get("mode", "llm")).lower()
+        self.reaction_timeout = float(reaction.get("llm_timeout_seconds", 8.0))
+        self.reaction_gap = float(reaction.get("min_gap_seconds", 4.5))
+        self.reaction_max_delay = float(reaction.get("max_delay_seconds", 0.0))
+        self.llm_ok = self.reaction_mode != "lines" and self.llm.reachable()
+        self.llm_failures = 0
+        if self.reaction_mode == "auto":
+            print(f"[game-reaction] auto: {'LLM + prepared lines' if self.llm_ok else 'Ollama not available -> prepared lines only'}")
+        elif self.reaction_mode == "lines":
+            print("[game-reaction] prepared lines only")
+
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ai-partner")
         self.task: _Task | None = None
         self.pending_user: list[SpeechTurn] = []
@@ -265,7 +281,13 @@ class PartnerRuntime:
                 )
                 print(f"[mind/game] {shown}")
 
-            self.pending_game = (pack, event)
+            event = dict(event)
+            event["_received"] = time.time()
+            old = self.pending_game
+            # Keep an important pending event (e.g. a clear) from being replaced by a trivial one.
+            if old is None or float(event.get("importance", 0.6)) >= float(old[1].get("importance", 0.6)) - 0.15 \
+                    or time.time() - float(old[1].get("_received", 0)) > 3.0:
+                self.pending_game = (pack, event)
             self.last_activity = time.time()
 
     def _maybe_game_reaction(self, now: float) -> None:
@@ -276,18 +298,28 @@ class PartnerRuntime:
             or self.pending_user
         ):
             return
-        if now - self.last_game_reaction < 4.5:
+        if now - self.last_game_reaction < self.reaction_gap:
             return
 
         pack, event = self.pending_game
         self.pending_game = None
+        age = now - float(event.get("_received", now))
+        if self.reaction_max_delay > 0 and age > self.reaction_max_delay and float(event.get("importance", 0.6)) < 0.8:
+            return   # too old to comment on; the moment has passed
         self.last_game_reaction = now
+        event = {k: v for k, v in event.items() if not k.startswith("_")}
+
+        if self.reaction_mode == "lines" or (self.reaction_mode == "auto" and not self.llm_ok):
+            self._process_game_result(self.games.pick_line(pack, event))
+            return
+
         context = self.games.present_context()
         future = self.executor.submit(
-            self.llm.game_reaction,
-            event=event,
-            context=context,
-            mind=dict(self.mind.state),
+            self._game_job,
+            pack,
+            event,
+            context,
+            dict(self.mind.state),
         )
         self.task = _Task(
             "game",
@@ -296,8 +328,32 @@ class PartnerRuntime:
             mode="game",
         )
 
+    def _game_job(self, pack: GamePack, event: dict[str, Any], context: str, mind: dict[str, float]) -> dict[str, Any]:
+        try:
+            data = self.llm.game_reaction(
+                event=event,
+                context=context,
+                mind=mind,
+                style=pack.reaction_style,
+                timeout=self.reaction_timeout if self.reaction_mode == "auto" else None,
+            )
+            self.llm_failures = 0
+            if str(data.get("utterance") or "").strip() or self.reaction_mode != "auto":
+                return data
+        except Exception as exc:
+            if self.reaction_mode != "auto":
+                raise
+            self.llm_failures += 1
+            print(f"[game-reaction] LLM {type(exc).__name__}; using a prepared line")
+            if self.llm_failures >= 3:
+                self.llm_ok = False
+                print("[game-reaction] LLM is too slow here; prepared lines only from now on")
+        return self.games.pick_line(pack, event)
+
     def _maybe_ambient(self, now: float) -> None:
         initiative = self.cfg.get("initiative", {})
+        if not self.llm.enabled or (self.reaction_mode in {"auto", "lines"} and not self.llm_ok):
+            return
         if (
             not bool(initiative.get("enabled", True))
             or self.task is not None

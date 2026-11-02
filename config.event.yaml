@@ -1,0 +1,40 @@
+# イベント会場（ノートPC）用の設定。run_event.cmd で使う。
+# 声は VOICEVOX（CPU で動く）、マイクは使わない、ゲームから届いた出来事にだけ反応する。
+# PC ごとに変えたいところは config.user.yaml に書く（こちらより優先される）。
+mode: game
+
+ollama:
+  # Ollama が無くても動く。あれば短い反応を LLM で作り、遅いときは用意したセリフに切り替える。
+  enabled: true
+  game_model: qwen3.5:4b
+  game_num_ctx: 2048
+  game_num_gpu: 0
+
+microphone:
+  enabled: false
+
+voice:
+  provider: voicevox
+  voicevox_url: http://127.0.0.1:50021
+  voicevox_speaker: 四国めたん
+  voicevox_speed: 1.1
+  voicevox_volume: 1.0
+  # 起動時に VOICEVOX を待つ秒数（アプリの起動が遅いとき用）
+  voicevox_wait_seconds: 60
+
+game_reaction:
+  # auto  : Ollama が使えれば LLM、使えない・遅いときは用意したセリフ
+  # lines : いつも用意したセリフ（速くて確実）
+  mode: auto
+  llm_timeout_seconds: 4
+  min_gap_seconds: 3.0
+  max_delay_seconds: 6.0
+
+# 会場では呼び込みが禁止なので、だれも遊んでいないときの独り言は止める
+initiative:
+  enabled: false
+
+game_packs:
+  enabled: true
+  directory: event_games
+  active: []

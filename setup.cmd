@@ -23,9 +23,9 @@ if errorlevel 1 goto :error
 where ollama >nul 2>nul
 if errorlevel 1 (
   echo.
-  echo [ERROR] Ollama was not found. Install Ollama before running AI Partner.
-  pause
-  exit /b 1
+  echo [NOTE] Ollama was not found.
+  echo        run.cmd needs Ollama. run_event.cmd works without it, using prepared lines.
+  goto :after_ollama
 )
 
 echo.
@@ -34,6 +34,8 @@ ollama show qwen3.5:9b >nul 2>nul
 if errorlevel 1 ollama pull qwen3.5:9b
 ollama show qwen3.5:4b >nul 2>nul
 if errorlevel 1 ollama pull qwen3.5:4b
+
+:after_ollama
 
 if not exist "config.user.yaml" (
   copy /Y "config.user.example.yaml" "config.user.yaml" >nul
@@ -44,10 +46,9 @@ if not exist "config.user.yaml" (
 echo.
 echo Setup complete.
 echo.
-echo Irodori-TTS is required.
-echo Default location: D:\Irodori-TTS
-echo If your Irodori-TTS is installed elsewhere, edit voice.irodori_dir in config.user.yaml.
-echo Then run run.cmd.
+echo run.cmd       : Irodori-TTS voice. Default location: D:\Irodori-TTS
+echo                 If it is installed elsewhere, edit voice.irodori_dir in config.user.yaml.
+echo run_event.cmd : VOICEVOX voice for laptops. Open the VOICEVOX app first.
 pause
 exit /b 0
 
