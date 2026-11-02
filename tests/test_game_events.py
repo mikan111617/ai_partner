@@ -51,6 +51,15 @@ class GameEventTests(unittest.TestCase):
         self.assertEqual(first["local_emotion"], "surprise")
         self.assertEqual(manager.pick_line(pack, {"event_type": "unknown"})["utterance"], "なるほど")
 
+    def test_every_line_is_used_before_repeating(self) -> None:
+        manager = self.make_manager([])
+        pack = manager.packs[0]
+        pack.lines["hit"]["texts"] = [f"line{i}" for i in range(10)]
+        said = [manager.pick_line(pack, {"event_type": "hit"})["utterance"] for _ in range(10)]
+        self.assertEqual(len(set(said)), 10)
+        nxt = manager.pick_line(pack, {"event_type": "hit"})["utterance"]
+        self.assertNotEqual(nxt, said[-1])
+
 
 if __name__ == "__main__":
     unittest.main()

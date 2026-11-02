@@ -166,6 +166,7 @@ class GamePackManager:
         self._http_server: ThreadingHTTPServer | None = None
         self._http_last: dict[str, float] = {}
         self._last_line: dict[tuple[str, str], int] = {}
+        self._line_bags: dict[tuple[str, str], list[int]] = {}
 
         if bool(cfg.get("enabled", True)):
             self._load()
@@ -324,11 +325,16 @@ class GamePackManager:
         texts = [str(x) for x in (spec.get("texts") or []) if str(x).strip()]
         if not texts:
             return {}
+        # Use every line once before repeating (and never the same line twice in a row).
         key = (pack.id, kind)
-        choices = list(range(len(texts)))
-        if len(choices) > 1 and key in self._last_line:
-            choices.remove(self._last_line[key])
-        index = random.choice(choices)
+        bag = self._line_bags.get(key)
+        if not bag or any(i >= len(texts) for i in bag):
+            bag = list(range(len(texts)))
+            random.shuffle(bag)
+            if len(bag) > 1 and bag[-1] == self._last_line.get(key):
+                bag[0], bag[-1] = bag[-1], bag[0]
+            self._line_bags[key] = bag
+        index = bag.pop()
         self._last_line[key] = index
         values = _SafeDict()
         for source in (event, event.get("details") or {}):
