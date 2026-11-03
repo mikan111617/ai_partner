@@ -28,7 +28,7 @@ microphone:
   beam_size: 3
 
 voice:
-  provider: irodori
+  provider: auto
   irodori_dir: 'D:\Irodori-TTS'
   irodori_launcher: auto
   irodori_python: ""

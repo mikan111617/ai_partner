@@ -163,6 +163,7 @@ class GamePackManager:
         self._seen_state_events: set[str] = set()
         self._present_summary: dict[str, str] = {}
         self._lock = threading.Lock()
+        self.speaking = False
         self._http_server: ThreadingHTTPServer | None = None
         self._http_last: dict[str, float] = {}
         self._last_line: dict[tuple[str, str], int] = {}
@@ -238,6 +239,7 @@ class GamePackManager:
                 self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
                 self.send_header("Access-Control-Allow-Headers", "Content-Type")
                 self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 if body:
@@ -247,7 +249,10 @@ class GamePackManager:
                 self._headers(204)
 
             def do_GET(self) -> None:  # noqa: N802
-                self._headers(200, b"ok")
+                if self.path == "/voice":
+                    self._headers(200, json.dumps({"speaking": manager.speaking, "duck_volume": 0.25}).encode())
+                else:
+                    self._headers(200, b"ok")
 
             def do_POST(self) -> None:  # noqa: N802
                 try:

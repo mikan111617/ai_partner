@@ -43,6 +43,7 @@ class PartnerRuntime:
             self.vnyan,
             on_start=self._voice_start,
             on_end=self._voice_end,
+            on_playback=lambda: setattr(self.games, "speaking", True),
         )
 
         self._game_events: queue.Queue[tuple[GamePack, dict[str, Any]]] = queue.Queue(maxsize=32)
@@ -88,6 +89,7 @@ class PartnerRuntime:
         self.microphone.set_suspended(True)
 
     def _voice_end(self) -> None:
+        self.games.speaking = False
         self.voice_active = False
         self.microphone.set_suspended(False)
         self.mind.last_spoken = time.time()
@@ -392,7 +394,7 @@ class PartnerRuntime:
     def run(self) -> None:
         self.microphone.start()
         self.games.start()
-        print("[runtime] started character=エリシア (ojousama). Ctrl+C to stop.")
+        print("[runtime] started character=四国めたん (shikoku_metan). Ctrl+C to stop.")
         try:
             while not self._stop.is_set():
                 now = time.time()

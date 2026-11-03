@@ -36,7 +36,7 @@ class MindEngineTests(unittest.TestCase):
         after = {key: mind.state[key] for key in before}
         self.assertEqual(before, after)
 
-    def test_player_defeat_affects_respect_and_concern_not_trust(self) -> None:
+    def test_player_defeat_increases_concern_without_losing_respect_or_trust(self) -> None:
         mind = self.make_mind()
         trust_before = mind.state["trust"]
         respect_before = mind.state["respect"]
@@ -49,7 +49,7 @@ class MindEngineTests(unittest.TestCase):
             }
         )
         self.assertEqual(mind.state["trust"], trust_before)
-        self.assertLess(mind.state["respect"], respect_before)
+        self.assertEqual(mind.state["respect"], respect_before)
         self.assertGreater(mind.state["concern"], concern_before)
 
 

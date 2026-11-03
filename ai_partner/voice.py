@@ -181,7 +181,7 @@ class VoicevoxSession:
     """VOICEVOX engine (http://127.0.0.1:50021). Runs on CPU, so it suits laptops.
 
     The VOICEVOX app starts the engine while it is open. Each emotion maps to a
-    style of one speaker (by default 四国めたん, whose styles fit an ojousama).
+    style of one speaker (by default 四国めたん).
     """
 
     DEFAULT_STYLES = {
@@ -312,6 +312,7 @@ class VoiceOutput:
         vnyan: VNyanBridge,
         on_start: Callable[[str], None] | None = None,
         on_end: Callable[[], None] | None = None,
+        on_playback: Callable[[], None] | None = None,
     ):
         self.provider = str(cfg.get("provider", "irodori")).lower()
         if self.provider not in {"irodori", "voicevox"}:
@@ -321,6 +322,7 @@ class VoiceOutput:
         self.vnyan = vnyan
         self.on_start = on_start
         self.on_end = on_end
+        self.on_playback = on_playback
         self.q: queue.Queue[tuple[str, str, float, float] | None] = queue.Queue(maxsize=8)
         self.irodori: IrodoriSession | None = None
         self.voicevox: VoicevoxSession | None = None
@@ -395,6 +397,9 @@ class VoiceOutput:
             ok, error = self.voicevox.synthesize(text, emotion, intensity, energy, path)
             if not ok:
                 raise RuntimeError(error)
+            if self.on_playback:
+                self.on_playback()
+                time.sleep(0.25)  # Allow the game to lower its audio before the first word.
             self.vnyan.play_with_lipsync(path, self._play_wav)
         finally:
             path.unlink(missing_ok=True)
@@ -408,6 +413,9 @@ class VoiceOutput:
             ok, error = self.irodori.synthesize(text, caption, path)
             if not ok:
                 raise RuntimeError(error)
+            if self.on_playback:
+                self.on_playback()
+                time.sleep(0.25)  # Allow the game to lower its audio before the first word.
             self.vnyan.play_with_lipsync(path, self._play_wav)
         finally:
             path.unlink(missing_ok=True)

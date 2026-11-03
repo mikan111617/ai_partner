@@ -6,6 +6,8 @@ microphone:
   device: ""
 
 voice:
+  # auto: choose on first launch; voicevox / irodori: use directly.
+  provider: auto
   # Change this when Irodori-TTS is installed somewhere other than D:\Irodori-TTS.
   irodori_dir: 'D:\Irodori-TTS'
   # Optional reference WAV for the character voice.

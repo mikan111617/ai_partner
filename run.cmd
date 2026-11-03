@@ -19,7 +19,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-.venv\Scripts\python.exe run_partner.py --config config.yaml
+.venv\Scripts\python.exe run_partner.py --config config.yaml %*
 set CODE=%ERRORLEVEL%
 pause
 exit /b %CODE%

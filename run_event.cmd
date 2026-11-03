@@ -10,7 +10,7 @@ if not exist ".venv\Scripts\python.exe" (
 )
 
 echo Open the VOICEVOX app before starting the game.
-.venv\Scripts\python.exe run_partner.py --config config.event.yaml --data-dir data_event --no-mic
+.venv\Scripts\python.exe run_partner.py --config config.event.yaml --data-dir data_event_metan --no-mic
 set CODE=%ERRORLEVEL%
 pause
 exit /b %CODE%

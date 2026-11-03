@@ -18,7 +18,7 @@ voice:
   voicevox_url: http://127.0.0.1:50021
   voicevox_speaker: 四国めたん
   voicevox_speed: 1.1
-  voicevox_volume: 1.0
+  voicevox_volume: 1.5
   # 起動時に VOICEVOX を待つ秒数（アプリの起動が遅いとき用）
   voicevox_wait_seconds: 60
 
